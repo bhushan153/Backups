@@ -1,0 +1,19 @@
+**********  To tack MySql database backup on server     ***************
+
+
+#!/bin/bash
+BACKUP_DIR="/home/mysqldb_backup"
+DATABASE_NAME="wyscale"
+DATE=$(date +\%Y\%m\%d) # Get the current date in YYYYMMDD format
+OUTPUT_FILE="$BACKUP_DIR/backup_$DATE.sql" # Include the date in the file name
+
+mysqldump --defaults-file=/home/mysqldb_backup/mysql_credentials.cnf $DATABASE_NAME > $OUTPUT_FILE
+
+
+********   create  mysql_credentials.cnf in above path and add credentials in this file       ***************
+
+
+[mysqldump]
+user=******
+password=******
+
