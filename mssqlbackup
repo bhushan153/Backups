@@ -1,0 +1,25 @@
+**********    to take backup of mssql database on server using bash script    **********
+
+
+#!/bin/bash
+
+# SQL Server credentials and database name
+DB_USER="******"
+DB_PASSWORD="*******"
+DB_NAME="*********"
+
+# Output file path and base filename for the backup
+BACKUP_PATH="/home/backups"
+BACKUP_FILENAME="mssqldb"
+
+# Create a timestamp with the current date in the format YYYYMMDD
+TIMESTAMP=$(date +%Y%m%d)
+
+# Full path to the backup file with the date appended
+FINAL_BACKUP_PATH="$BACKUP_PATH/$BACKUP_FILENAME-$TIMESTAMP.bak"
+
+# SQL query to perform the database backup
+SQL_QUERY="BACKUP DATABASE [$DB_NAME] TO DISK='$FINAL_BACKUP_PATH'"
+
+# Execute the backup command using sqlcmd
+/opt/mssql-tools/bin/sqlcmd -S localhost -U "$DB_USER" -P "$DB_PASSWORD" -Q "$SQL_QUERY"
