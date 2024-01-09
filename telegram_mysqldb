@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Telegram bot API key
+BOT_API_KEY="6751722536:77777777777777777777"
+
+# Telegram chat ID (replace with your group chat ID)
+CHAT_ID="-77777777"
+
+# MySQL database credentials
+DB_USER="******"
+DB_PASSWORD="*****"
+DB_NAME="*********"
+
+# Backup directory
+BACKUP_DIR="/home/mysqldb_backup/"
+
+# Create a timestamp for the backup file
+TIMESTAMP=$(date "+%Y%m%d_%H%M%S")
+BACKUP_FILE="${BACKUP_DIR}/_${TIMESTAMP}.sql"
+
+# Perform database backup
+mysqldump -u"${DB_USER}" -p"${DB_PASSWORD}" "${DB_NAME}" > "${BACKUP_FILE}"
+
+# Check if the backup was successful
+if [ $? -eq 0 ]; then
+    # Send success message to Telegram group
+    MESSAGE=" Database backup completed successfully. Filename: backup_${TIMESTAMP}.sql"
+
+    # Use curl to send message and file to Telegram group
+    curl -s -X POST "https://api.telegram.org/bot${BOT_API_KEY}/sendDocument" \
+        -F "chat_id=${CHAT_ID}" \
+        -F "document=@${BACKUP_FILE}" \
+        -F "caption=${MESSAGE}"
+else
+    # Send error message to Telegram group
+    MESSAGE="Error:  Database backup failed."
+
+    # Use curl to send message to Telegram group
+    curl -s -X POST "https://api.telegram.org/bot${BOT_API_KEY}/sendMessage" \
+        -d "chat_id=${CHAT_ID}" \
+        -d "text=${MESSAGE}"
+fi
