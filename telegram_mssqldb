@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# SQL Server credentials and database name
+DB_USER="******"
+DB_PASSWORD="******"
+DB_NAME="*********"
+
+# Output file path and base filename for the backup
+BACKUP_PATH="/home/backups"
+BACKUP_FILENAME="TOR"
+
+# Create a timestamp with the current date in the format YYYYMMDD
+TIMESTAMP=$(date +%Y%m%d)
+
+# Full path to the backup file with the date appended
+FINAL_BACKUP_PATH="$BACKUP_PATH/$BACKUP_FILENAME-$TIMESTAMP.bak"
+
+# Full path to the compressed backup file
+COMPRESSED_BACKUP_PATH="$BACKUP_PATH/$BACKUP_FILENAME-$TIMESTAMP.tar.gz"
+
+# SQL query to perform the database backup
+SQL_QUERY="BACKUP DATABASE [$DB_NAME] TO DISK='$FINAL_BACKUP_PATH'"
+
+# Execute the backup command using sqlcmd
+/opt/mssql-tools/bin/sqlcmd -S localhost -U "$DB_USER" -P "$DB_PASSWORD" -Q "$SQL_QUERY"
+
+# Check if the backup was successful
+if [ $? -eq 0 ]; then
+    # Compress the backup file
+    tar -czf "$COMPRESSED_BACKUP_PATH" -C "$BACKUP_PATH" "$(basename "$FINAL_BACKUP_PATH")"
+
+    # Telegram bot API key and chat ID
+    BOT_API_KEY="6751722536:777777777777777777777"      
+    CHAT_ID="-77777777777777777777"
+
+    # Send compressed backup file to Telegram group
+    MESSAGE=" Database backup completed successfully. Filename: $(basename "$FINAL_BACKUP_PATH")"
+    curl -s -X POST "https://api.telegram.org/bot${BOT_API_KEY}/sendDocument" \
+        -F "chat_id=${CHAT_ID}" \
+        -F "document=@${COMPRESSED_BACKUP_PATH}" \
+        -F "caption=${MESSAGE}"
+else
+    # Send error message to Telegram group
+    MESSAGE="Error:  Database backup failed."
+    curl -s -X POST "https://api.telegram.org/bot${BOT_API_KEY}/sendMessage" \
+        -d "chat_id=${CHAT_ID}" \
+        -d "text=${MESSAGE}"
+fi
